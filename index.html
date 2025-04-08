@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker</title>
+  
+</head>     
+<style>
+    * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+}
+
+body {
+    background-color: #f4f4f4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.container {
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    width: 350px;
+}
+
+h1, h3 {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+#balance {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#income-expense {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.money {
+    font-size: 20px;
+}
+
+.plus {
+    color: green;
+}
+
+.minus {
+    color: red;
+}
+
+#transaction-list {
+    list-style-type: none;
+    margin-bottom: 20px;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+#transaction-list li {
+    background: #f9f9f9;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    border-right: 5px solid;
+}
+
+#transaction-list .plus {
+    border-color: green;
+}
+
+#transaction-list .minus {
+    border-color: red;
+}
+
+#transaction-form {
+    display: flex;
+    flex-direction: column;
+}
+
+#transaction-form input {
+    margin-bottom: 10px;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+#transaction-form .btn {
+    padding: 10px;
+    background: #333;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+#transaction-form .btn:hover {
+    background: #555;
+}
+
+</style>
+<body>
+    <div class="container">
+        <h1>Expense Tracker</h1>
+        <div id="balance">
+            <h3>Your Balance</h3>
+            <h1 id="balance-amount">₹0.00</h1>
+        </div>
+
+        <div id="income-expense">
+            <div>   
+                <h3>Income</h3>
+                <p id="income-amount" class="money plus">+₹0.00</p>
+            </div>
+            <div>
+                <h3>Expense</h3>
+                <p id="expense-amount" class="money minus">-₹0.00</p>
+            </div>
+        </div>
+
+        <h3>History</h3>
+        <ul id="transaction-list"></ul>
+
+        <h3>Add New Transaction</h3>
+        <form id="transaction-form">
+            <label for="text">Text</label>
+            <input type="text" id="text" placeholder="Enter description">
+            <label for="amount">Amount <br> (negative - expense, positive - income)</label>
+            <input type="number" id="amount" placeholder="Enter amount">
+            <button type="submit" class="btn">Add Transaction</button>
+        </form>
+    </div>
+
+    <script >
+        const balance = document.getElementById('balance-amount');
+const income = document.getElementById('income-amount');
+const expense = document.getElementById('expense-amount');
+const transactionList = document.getElementById('transaction-list');
+const form = document.getElementById('transaction-form');
+const text = document.getElementById('text');
+const amount = document.getElementById('amount');
+
+let transactions = [];
+
+// Add transaction
+function addTransaction(e) {
+    e.preventDefault();
+
+    if (text.value.trim() === '' || amount.value.trim() === '') {
+        alert('Please add a description and amount');
+    } else {
+        const transaction = {
+            id: generateID(),
+            text: text.value,
+            amount: +amount.value
+        };
+
+        transactions.push(transaction);
+        addTransactionDOM(transaction);
+        updateValues();
+        text.value = '';
+        amount.value = '';
+    }
+}
+
+// Generate random ID
+function generateID() {
+    return Math.floor(Math.random() * 100000000);
+}
+
+// Add transactions to DOM
+function addTransactionDOM(transaction) {
+    const sign = transaction.amount < 0 ? '-' : '+';
+    const item = document.createElement('li');
+
+    item.classList.add(transaction.amount < 0 ? 'minus' : 'plus');
+    item.innerHTML = `
+        ${transaction.text} <span>${sign}${Math.abs(transaction.amount)}</span>
+        <button class="delete-btn" onclick="removeTransaction(${transaction.id})">x</button>
+    `;
+
+    transactionList.appendChild(item);
+}
+
+// Update the balance, income and expense
+function updateValues() {
+    const amounts = transactions.map(transaction => transaction.amount);
+    const total = amounts.reduce((acc, item) => (acc += item), 0).toFixed(2);
+    const incomeTotal = amounts
+        .filter(item => item > 0)
+        .reduce((acc, item) => (acc += item), 0)
+        .toFixed(2);
+    const expenseTotal = (
+        amounts.filter(item => item < 0).reduce((acc, item) => (acc += item), 0) *
+        -1
+    ).toFixed(2);
+
+    balance.innerText = `₹${total}`;
+    income.innerText = `+₹${incomeTotal}`;
+    expense.innerText = `-₹${expenseTotal}`;
+}
+
+// Remove transaction by ID
+function removeTransaction(id) {
+    transactions = transactions.filter(transaction => transaction.id !== id);
+    init();
+}
+
+// Initialize app
+function init() {
+    transactionList.innerHTML = '';
+    transactions.forEach(addTransactionDOM);
+    updateValues();
+}
+
+init();
+
+form.addEventListener('submit', addTransaction);
+
+    </script>
+</body>
+</html>
